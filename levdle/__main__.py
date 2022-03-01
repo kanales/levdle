@@ -1,8 +1,14 @@
+import datetime
+import os
+import sys
+import termios
+import tty
 from array import array
+from hashlib import sha1
+from typing import TextIO
 
 
 def distance(a, b, mx=-1):
-    # from rosseta code
     def result(d):
         return d if mx < 0 else False if d > mx else True
 
@@ -35,23 +41,12 @@ def distance(a, b, mx=-1):
     return result(cost[lb])
 
 
-import tty
-import termios
-import sys
-import datetime
-from typing import TextIO
-
 WC = 9972
+WORD_FILE = os.path.join(os.path.dirname(__file__), "../data/words.txt")
 
 
-
-with open("data/words.txt", "r") as f:
-    words = [ s.strip()  for s in f.readlines() ]
-
-
-
-import random
-from hashlib import sha1
+with open(WORD_FILE, "r") as f:
+    words = [s.strip() for s in f.readlines()]
 
 
 class Game:
@@ -76,7 +71,7 @@ class Game:
 
     def on_enter(self):
         done = False
-        word = ''.join(self.buffer)
+        word = "".join(self.buffer)
         if len(self.buffer) != 5 or word not in words:
             self.fout.write("\033[99D")  # move left
             self.fout.write("\033[K")  # clear line
@@ -97,7 +92,7 @@ class Game:
             self.fout.write(f" [\033[31;1m{d}\033[0m]")
             if self.tries == 1:
                 return True
-            else: 
+            else:
                 self.tries -= 1
 
         self.fout.write("\n")
@@ -140,6 +135,7 @@ class Game:
             print(f"\033[99D🎉 You win! [{6 - self.tries + 1}/6]")
         else:
             print(f"\n💩 You lost...")
+            print(f'Today\'s word was "{self.word}"')
 
 
 if __name__ == "__main__":
