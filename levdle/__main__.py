@@ -42,8 +42,11 @@ def distance(a, b, mx=-1):
 
 
 WC = 9972
-WORD_FILE = os.path.join(os.path.dirname(__file__), "../data/words.txt")
-
+DATA_DIR = os.path.join(os.path.dirname(__file__), "../data")
+DONE_FILE = os.path.join(DATA_DIR, "done")
+with open(DONE_FILE, "a") as f:
+    pass
+WORD_FILE = os.path.join(DATA_DIR, "../data/words.txt")
 
 with open(WORD_FILE, "r") as f:
     words = [s.strip() for s in f.readlines()]
@@ -55,8 +58,8 @@ class Game:
         self.fout = fout
         self.buffer = []
         self.tries = 6
-        today = datetime.date.today().isoformat().encode("utf-8")
-        idx = int(sha1(today).hexdigest(), 16) % WC
+        self.today = datetime.date.today().isoformat()
+        idx = int(sha1(self.today.encode("utf-8")).hexdigest(), 16) % WC
         self.word = words[idx]
         self.win = False
 
@@ -106,7 +109,7 @@ class Game:
             if c == "":
                 self.fout.write("\n")
                 break
-            elif ord(c) == 127:
+            elif ord(c) == 127 and self.buffer:
                 self.buffer.pop()
             elif ord(c) == 13:
                 done = self.on_enter()
@@ -122,6 +125,16 @@ class Game:
             self.show_buffer()
 
     def run(self):
+        with open(DONE_FILE, "r+") as f:
+            content = f.read()
+            if content == self.today:
+                print("Only one try per day allowed...")
+                return
+            else:
+                print(content)
+                f.seek(0)
+                f.write(self.today)
+
         fd = self.fin.fileno()
         old_settings = termios.tcgetattr(fd)
         tty.setraw(fd)
